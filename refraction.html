@@ -1,0 +1,75 @@
+<html>
+    <head>
+    <style>
+        body{
+            display: flex;
+        }
+        svg{
+            border: 1px solid black;
+        }
+    </style>
+    <script>
+        function playTheta(){
+            var n1 = document.getElementById("n1").value;
+            var n2 = document.getElementById("n2").value;
+            var theta = (document.getElementById("theta").value)*(Math.PI/180);
+            var thetaP = Math.asin((n1/n2)*Math.sin(theta));
+            document.getElementById("thetaP").value = thetaP*(180/Math.PI);
+            
+            var incidant = document.getElementById("incidant");
+            incidant.setAttribute("x1",-Math.sin(theta)*250+250);
+            incidant.setAttribute("y1",-Math.cos(theta)*250+250);
+    
+            var refranctant = document.getElementById("refranctant");
+            refranctant.setAttribute("x2",Math.sin(thetaP)*250+250);
+            refranctant.setAttribute("y2",Math.cos(thetaP)*250+250);
+    
+            document.getElementById("textTheta").innerHTML = "Theta :"+parseFloat(theta*(180/Math.PI)).toFixed(2);
+            document.getElementById("textThetaP").innerHTML = "ThetaP :"+parseFloat(thetaP*(180/Math.PI)).toFixed(2);
+            document.getElementById("textn1").innerHTML = "n1 :"+parseFloat(n1).toFixed(2);
+            document.getElementById("textn2").innerHTML = "n2 :"+parseFloat(n2).toFixed(2);
+        }
+        function playThetaP(){
+            var n1 = document.getElementById("n1").value;
+            var n2 = document.getElementById("n2").value;
+            var thetaP = (document.getElementById("thetaP").value)*(Math.PI/180);
+            var theta = Math.asin((n2/n1)*Math.sin(thetaP));
+            document.getElementById("theta").value = theta*(180/Math.PI);
+            
+            var incidant = document.getElementById("incidant");
+            incidant.setAttribute("x1",-Math.sin(theta)*250+250);
+            incidant.setAttribute("y1",-Math.cos(theta)*250+250);
+    
+            var refranctant = document.getElementById("refranctant");
+            refranctant.setAttribute("x2",Math.sin(thetaP)*250+250);
+            refranctant.setAttribute("y2",Math.cos(thetaP)*250+250);
+    
+            document.getElementById("textTheta").innerHTML = "Theta :"+parseFloat(theta*(180/Math.PI)).toFixed(2);
+            document.getElementById("textThetaP").innerHTML = "ThetaP :"+parseFloat(thetaP*(180/Math.PI)).toFixed(2);
+            document.getElementById("textn1").innerHTML = "n1 :"+parseFloat(n1).toFixed(2);
+            document.getElementById("textn2").innerHTML = "n2 :"+parseFloat(n2).toFixed(2);
+    
+        }
+    </script>
+    </head>
+<body>
+        <div class="inputs">
+            n1: <input type="number" id="n1" oninput="playTheta()" min="1"><br>
+            n2: <input type="number" id="n2" oninput="playTheta()" min="1"><br>
+            Theta: <input type="number" name="theta" id="theta" oninput="playTheta()" min="0" max="90"><br>
+            ThetaP: <input type="number" name="thetaP" id="thetaP" oninput="playThetaP()" min="0" max="90">
+        </div>
+
+        <svg height="500" width="500">
+            <text x="0" y="15" fill="blue" id="textTheta"></text>
+            <text x="100" y="15" fill="red" id="textThetaP"></text>
+            <text x="930" y="450" fill="blue" id="textn1"></text>
+            <text x="930" y="550" fill="red" id="textn2"></text>
+            <line x1="0" y1="0" x2="250" y2="250" style="stroke:rgb(25, 0, 255);stroke-width:2" id="incidant" />
+            <line x1="0" y1="250" x2="500" y2="250" style="stroke:rgb(0, 0, 0);stroke-width:1" id="dioptre" />
+            <line x1="250" y1="0" x2="250" y2="500" style="stroke:rgb(0, 0, 0);stroke-width:1" id="repere" />
+            <line x1="250" y1="250" x2="0" y2="0" style="stroke:rgb(255, 64, 0);stroke-width:2" id="refranctant" />
+        </svg>
+
+    </body>
+</html>

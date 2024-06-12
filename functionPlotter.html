@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Function Plotter</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      height: calc(100vh - 5px);
+      background-color: #1e1e2e;
+      color: #e78284;
+      margin: 0;
+      padding-top: 10rem;
+    }
+
+    canvas {
+      border: 1px solid #f38ba8 ;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Function Plotter</h1>
+  <canvas id="gameCanvas"></canvas>
+  <input type="text" name="fx" id="fx">
+  <button onclick="drawFunc(document.getElementById('fx').value)">plot</button>
+  <button onclick="clearCanvas()">Clear</button>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    initCanvas();
+
+    function initCanvas() {
+      canvas.width = 400;
+      canvas.height = 400;
+
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.scale(1, -1);
+    }
+
+    const limX = canvas.width;
+    const limY = canvas.height;
+    const maxD = 10;
+    const scal = (limX / maxD);
+    const smoothness = 0.1;
+    const colors = ["#a6e3a1", "#f38ba8", "#b4befe", "#cba6f7" ]
+    var clr = 0;
+
+    drawPoint(0, 0);
+    drawAxis();
+    drawFunc(f);
+
+
+    function drawAxis() {
+      ctx.strokeStyle = "#74c6ecb9";
+
+      drawLine(-limX, 0, limX, 0);
+      drawLine(0, -limY, 0, limY);
+
+      for (var x = -limX; x <= limX; x++) {
+        //drawLine(x * scal, -5, x * scal, 5);
+        drawLine(x * scal, -limY, x * scal, limY);
+      }
+
+      for (var y = -limY; y <= limY; y++) {
+        //drawLine(-5, y * scal, 5, y * scal);
+        drawLine(-limX, y * scal, limX, y * scal);
+      }
+
+    }
+
+    function drawPoint(x, y) {
+      x *= scal;
+      y *= scal;
+      ctx.beginPath();
+      ctx.arc(x, y, 2, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.textAlign = 'center';
+      ctx.save();
+      ctx.scale(1,-1);
+      ctx.fillText('(' + x/scal + ',' + y/scal + ')', x, -y);
+      ctx.restore();
+    }
+
+    function drawLine(prvX, prvY, curX, curY) {
+      ctx.beginPath();
+      ctx.moveTo(prvX, prvY);
+      ctx.lineTo(curX, curY);
+      ctx.stroke();
+    }
+
+    function drawFunc(f) {
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = colors[clr%colors.length]
+      clr+=1;
+      f.replaceAll("x", "prvX");
+      var prvX = -maxD;
+      var prvY = eval(f);
+      for (var x = -limX; x <= limX; x += smoothness) {
+        f.replaceAll("prvX", "curX");
+        var curX = x;
+        var curY = eval(f);
+        drawLine(prvX * scal, prvY * scal, curX * scal, curY * scal);
+        prvX = curX;
+        prvY = curY;
+      }
+    }
+
+    function clearCanvas(){
+      ctx.clearRect(-canvas.width/2,-canvas.height/2,canvas.width,canvas.height);
+      drawAxis();
+    }
+  </script>
+</body>
+
+</html>

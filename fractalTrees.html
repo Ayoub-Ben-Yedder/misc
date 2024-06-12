@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fraclas</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #1e1e2e;
+      color: #e78284;
+      margin: 0;
+    }
+
+    canvas {
+      border: 1px solid #f38ba8;
+    }
+  </style>
+</head>
+
+<body>
+  <input type="text" id="num">
+  <canvas id="gameCanvas"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    initCanvas();
+
+    function initCanvas() {
+      canvas.width = window.innerWidth - 50;
+      canvas.height = window.innerHeight - 50;
+    }
+
+    const colors = ["#a6e3a1", "#f38ba8", "#b4befe", "#cba6f7"]
+    var clr = 0;
+    const max = 5;
+    const sides = 5;
+    const spread = 2;
+
+    function draw(lvl) {
+      if (lvl > max) return;
+      ctx.strokeStyle = colors[lvl % colors.length];
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(150, 0);
+      ctx.stroke();
+      ctx.save();
+      ctx.translate(75, 0);
+      ctx.rotate(spread);
+      ctx.scale(-1, -1);
+      draw(lvl + 1);
+      ctx.restore();
+    }
+    function drawFract(sides) {
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.lineWidth = 5;
+      for (var i = 0; i < sides; i++) {
+        ctx.rotate(Math.PI * 2 / sides);
+        draw(0);
+      }
+    }
+
+    document.getElementById("num").addEventListener("change", () => {
+      var num = document.getElementById("num").value;
+      ctx.reset();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawFract(num);
+    })
+  </script>
+</body>
+
+</html>

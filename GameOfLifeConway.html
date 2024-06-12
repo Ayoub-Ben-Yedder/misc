@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conway's Game of Life</title>
+    <style>
+         * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: calc(100vh - 5px);
+            background-color: #1e1e2e	;
+            margin: 0;
+        }
+        canvas {
+            border: 1px solid #f38ba8;
+        }
+        #sideMenu {
+            width: 200px;
+            padding: 20px;
+            color: #cdd6f4	;
+            font-family: sans-serif;
+            font-size: large;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="sideMenu">
+        <label for="cellSize">Cell Size:</label>
+        <input type="number" id="cellSizeInput" value="10" min="1" max="50">
+        <br>
+        <label for="speed">Speed:</label>
+        <input type="range" id="speedInput" value="50" min="1" max="100">
+        <button id="randomizeButton">Randomize Grid</button>
+        <br>
+        <label for="drawCells">Draw Cells:</label>
+        <input type="checkbox" id="drawCellsCheckbox">
+        <br>
+        <button id="startButton">Start</button>
+        <button id="stopButton">Stop</button>
+        <button id="stepButton">Step Forward</button>
+        <br>
+        <button id="clearButton">Clear Grid</button>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const cellSizeInput = document.getElementById('cellSizeInput');
+        const speedInput = document.getElementById('speedInput');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const stepButton = document.getElementById('stepButton');
+        const clearButton = document.getElementById('clearButton');
+        const drawCellsCheckbox = document.getElementById('drawCellsCheckbox');
+        const randomizeButton = document.getElementById('randomizeButton');
+
+        let isAnimating = true;
+        let animationSpeed = 50;
+        let resolution = 10;
+        let rows, cols;
+        let grid;
+
+        init();
+
+        function init() {
+            canvas.width = window.innerWidth - 220;
+            canvas.height = window.innerHeight;
+            rows = Math.floor(canvas.height / resolution);
+            cols = Math.floor(canvas.width / resolution);
+            grid = createGrid();
+            randomizeGrid(grid);
+            drawGrid(grid);
+
+            startButton.addEventListener('click', startAnimation);
+            stopButton.addEventListener('click', stopAnimation);
+            stepButton.addEventListener('click', stepForward);
+            clearButton.addEventListener('click', clearGrid);
+            cellSizeInput.addEventListener('change', handleCellSizeChange);
+            speedInput.addEventListener('input', handleSpeedChange);
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            randomizeButton.addEventListener('click', handleRandomizeClick);
+
+            animate();
+        }
+
+        function createGrid() {
+            return new Array(rows).fill(null).map(() => new Array(cols).fill(false));
+        }
+
+        function drawGrid(grid) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#cba6f7';
+
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    if (grid[i][j]) {
+                        ctx.fillRect(j * resolution, i * resolution, resolution, resolution);
+                    }
+                }
+            }
+        }
+
+        function randomizeGrid(grid) {
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    grid[i][j] = Math.random() > 0.9;
+                }
+            }
+        }
+
+        function updateGrid(grid) {
+            const newGrid = createGrid();
+
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const neighbors = countNeighbors(grid, i, j);
+
+                    if (grid[i][j]) {
+                        newGrid[i][j] = neighbors === 2 || neighbors === 3;
+                    } else {
+                        newGrid[i][j] = neighbors === 3;
+                    }
+                }
+            }
+
+            return newGrid;
+        }
+
+        function countNeighbors(grid, row, col) {
+            let count = 0;
+
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    const neighborRow = row + i;
+                    const neighborCol = col + j;
+
+                    if (
+                        neighborRow >= 0 &&
+                        neighborCol >= 0 &&
+                        neighborRow < rows &&
+                        neighborCol < cols &&
+                        !(i === 0 && j === 0)
+                    ) {
+                        count += grid[neighborRow][neighborCol] ? 1 : 0;
+                    }
+                }
+            }
+
+            return count;
+        }
+
+        function animate() {
+            if(isAnimating){
+                drawGrid(grid);
+                grid = updateGrid(grid);
+                setTimeout(() => requestAnimationFrame(animate), 100-animationSpeed);
+            }
+        }
+
+        function startAnimation() {
+            isAnimating = true;
+            animate();
+        }
+
+        function stopAnimation() {
+            isAnimating = false;
+        }
+
+        function stepForward() {
+            drawGrid(grid);
+            grid = updateGrid(grid);
+        }
+
+        function clearGrid() {
+            grid = createGrid();
+            drawGrid(grid);
+        }
+
+        function handleCellSizeChange() {
+            resolution = parseInt(cellSizeInput.value, 10);
+            rows = Math.floor(canvas.height / resolution);
+            cols = Math.floor(canvas.width / resolution);
+            grid = createGrid();
+            randomizeGrid(grid);
+            drawGrid(grid);
+        }
+
+        function handleSpeedChange() {
+            animationSpeed = parseInt(speedInput.value, 10);
+        }
+
+        function handleMouseDown() {
+            if(drawCellsCheckbox.checked){
+                isDrawing = true;
+            }
+        }
+
+        function handleMouseUp() {
+            isDrawing = false;
+        }
+
+        function handleMouseMove(e) {
+            if (isDrawing) {
+                const rect = canvas.getBoundingClientRect();
+                const x = Math.floor((e.clientX - rect.left) / resolution);
+                const y = Math.floor((e.clientY - rect.top) / resolution);
+
+                if (x >= 0 && x < cols && y >= 0 && y < rows) {
+                    grid[y][x] = 1;
+                    drawGrid(grid);
+                }
+            }
+        }
+
+        function handleRandomizeClick() {
+            randomizeGrid(grid);
+            drawGrid(grid);
+        }
+    </script>
+</body>
+</html>
