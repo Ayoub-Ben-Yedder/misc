@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Solver</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+
+        body,
+        #controls {
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+
+        }
+    </style>
+</head>
+
+<body>
+    <div id="controls">
+        Maze Size: <input type="text" name="size" id="size">
+        Maze Generation Algorithm: <select name="gen" id="gen">
+            <option value="DFS">DFS</option>
+            <option value="Prim">Prim</option>
+        </select>
+        <button id="gen-btn">Generate</button>
+        <button id="solve-btn">Solve</button>
+    </div>
+    <canvas id="maze" width="600" height="600"></canvas>
+    <script src="maze.js"></script>
+    <script>
+        const canvasId = 'maze';
+        var size, maze, gen;
+        function generate() {
+            size = document.getElementById("size").value;
+            gen = document.getElementById("gen").value;
+            maze = new Maze(size, size);
+            if (gen == "DFS") {
+                maze.generateDFS();
+            } else {
+                maze.generatePrim();
+            }
+            maze.draw(canvasId);
+        }
+
+        async function solve() {
+            await maze.drawTrail(canvasId);
+        }
+        document.getElementById("gen-btn").addEventListener("click", generate);
+        document.getElementById("solve-btn").addEventListener("click", solve);
+        window.addEventListener("resize", () => {
+            var canvasSize;
+            if (window.innerWidth > window.innerHeight) {
+                canvasSize = window.innerHeight - document.getElementById("controls").clientHeight - 20;
+            } else {
+                canvasSize = window.innerWidth - 20;
+            }
+            document.getElementById(canvasId).width = canvasSize;
+            document.getElementById(canvasId).height = canvasSize;
+        })
+    </script>
+</body>
+
+</html>
