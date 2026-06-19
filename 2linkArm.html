@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2-Link Robotic Arm Visualization</title>
+    <style>
+        body {
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <h1>2-Link Robotic Arm Visualization</h1>
+    <div class="controls">
+        <label for="theta1">Theta 1 (degrees): </label>
+        <input type="number" id="theta1" step="1" value="0">
+        <label for="theta2">Theta 2 (degrees): </label>
+        <input type="number" id="theta2" step="1" value="0">
+        <br>
+        <label for="x">X Coordinate: </label>
+        <input type="number" id="x" step="1" value="100">
+        <label for="y">Y Coordinate: </label>
+        <input type="number" id="y" step="1" value="0">
+    </div>
+    <canvas id="robotCanvas" width="600" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('robotCanvas');
+        const ctx = canvas.getContext('2d');
+        const L1 = 213;
+        const L2 = 212; 
+        const theta1Input = document.getElementById('theta1');
+        const theta2Input = document.getElementById('theta2');
+        const xInput = document.getElementById('x');
+        const yInput = document.getElementById('y');
+        function drawArm(theta1, theta2) {
+            
+            ctx.restore();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.scale(1, -1);
+            ctx.translate(canvas.width / 2, -canvas.height / 2);
+            
+            const jointX1 = L1 * Math.cos(theta1);
+            const jointY1 = L1 * Math.sin(theta1);
+            const jointX2 = jointX1 + L2 * Math.cos(theta1 + theta2);
+            const jointY2 = jointY1 + L2 * Math.sin(theta1 + theta2);
+            ctx.beginPath();
+            ctx.moveTo(0, -canvas.height / 2);
+            ctx.lineTo(0, +canvas.height / 2);
+            ctx.moveTo(-canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, 0);
+            ctx.strokeStyle = 'gray';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(0, 0, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(jointX1, jointY1);
+            ctx.strokeStyle = 'blue';
+            ctx.lineWidth = 5;
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(jointX1, jointY1);
+            ctx.lineTo(jointX2, jointY2);
+            ctx.strokeStyle = 'green';
+            ctx.lineWidth = 5;
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(jointX1, jointY1, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(jointX2, jointY2, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = 'red';
+            ctx.fill();
+        }
+        function inverseKinematics(x, y) {
+            const cosTheta2 = (x * x + y * y - L1 * L1 - L2 * L2) / (2 * L1 * L2);
+            const sinTheta2 = Math.sqrt(1 - cosTheta2 * cosTheta2);
+            const theta2 = Math.atan2(sinTheta2, cosTheta2);
+            const k1 = L1 + L2 * cosTheta2;
+            const k2 = L2 * sinTheta2;
+            const theta1 = Math.atan2(y, x) - Math.atan2(k2, k1);
+            return [theta1, theta2];
+        }
+        
+        drawArm(parseFloat(theta1Input.value) * Math.PI / 180, parseFloat(theta2Input.value) * Math.PI / 180);
+        
+        theta1Input.addEventListener('input', () => {
+            const theta1 = parseFloat(theta1Input.value) * Math.PI / 180;
+            const theta2 = parseFloat(theta2Input.value) * Math.PI / 180;
+            drawArm(theta1, theta2);
+            const jointX1 = L1 * Math.cos(theta1);
+            const jointY1 = L1 * Math.sin(theta1);
+            const jointX2 = jointX1 + L2 * Math.cos(theta1 + theta2);
+            const jointY2 = jointY1 + L2 * Math.sin(theta1 + theta2);
+            xInput.value = jointX2;
+            yInput.value = jointY2;
+        });
+        theta2Input.addEventListener('input', () => {
+            const theta1 = parseFloat(theta1Input.value) * Math.PI / 180;
+            const theta2 = parseFloat(theta2Input.value) * Math.PI / 180;
+            drawArm(theta1, theta2);
+            const jointX1 = L1 * Math.cos(theta1);
+            const jointY1 = L1 * Math.sin(theta1);
+            const jointX2 = jointX1 + L2 * Math.cos(theta1 + theta2);
+            const jointY2 = jointY1 + L2 * Math.sin(theta1 + theta2);
+            xInput.value = jointX2;
+            yInput.value = jointY2;
+        });
+        xInput.addEventListener('input', () => {
+            const x = parseFloat(xInput.value);
+            const y = parseFloat(yInput.value);
+            const [theta1, theta2] = inverseKinematics(x, y);
+            drawArm(theta1, theta2);
+            theta1Input.value = (theta1 * 180 / Math.PI).toFixed(2);
+            theta2Input.value = (theta2 * 180 / Math.PI).toFixed(2);
+        });
+        yInput.addEventListener('input', () => {
+            const x = parseFloat(xInput.value);
+            const y = parseFloat(yInput.value);
+            const [theta1, theta2] = inverseKinematics(x, y);
+            drawArm(theta1, theta2);
+            theta1Input.value = (theta1 * 180 / Math.PI).toFixed(2);
+            theta2Input.value = (theta2 * 180 / Math.PI).toFixed(2);
+        });
+        canvas.addEventListener("mousemove", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left - canvas.width / 2;
+            const y = canvas.height / 2 - (e.clientY - rect.top);
+            const [theta1, theta2] = inverseKinematics(x, y);
+            drawArm(theta1, theta2);
+            theta1Input.value = (theta1 * 180 / Math.PI).toFixed(2);
+            theta2Input.value = (theta2 * 180 / Math.PI).toFixed(2);
+        });
+    </script>
+</body>
+</html>
