@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SandSim</title>
+</head>
+
+<body>
+    <canvas id="canvas" width="700" height="700"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const canvasSize = canvas.width;
+        /** @type {CanvasRenderingContext2D} */
+        const ctx = canvas.getContext('2d');
+
+        const gridSize = 100;
+        const cellSize = Math.floor(canvasSize / gridSize);
+        const EMPTY = 0;
+        var color = Math.random();
+        var isMouseDown = false;
+
+        var grid = Array(gridSize).fill().map(() => Array(gridSize).fill(EMPTY));
+
+        function drawGrid(grid) {
+            ctx.clearRect(0, 0, canvasSize, canvasSize);
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    switch (grid[y][x]) {
+                        case EMPTY:
+                            ctx.fillStyle = "black";
+                            break;
+                        default:
+                            ctx.fillStyle = 'hsl(' + 360 * grid[y][x] + ', 100%, 50%)';
+                            break;
+                    }
+                    ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                }
+            }
+        }
+
+        function addSand(e, color) {
+            const cellX = Math.floor(e.offsetX / cellSize);
+            const cellY = Math.floor(e.offsetY / cellSize);
+            const radius = 3;
+            for (let y = -radius; y <= radius; y++) {
+                for (let x = -radius; x <= radius; x++) {
+                    if (x * x + y * y <= radius * radius) {
+                        const newX = cellX + x;
+                        const newY = cellY + y;
+                        if (newX >= 0 && newX < gridSize && newY >= 0 && newY < gridSize) {
+                            grid[newY][newX] = color;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        canvas.addEventListener("mousedown", (e) => {
+            isMouseDown = true;
+            color = Math.random();
+            addSand(e, color);
+        });
+
+        canvas.addEventListener("mousemove", (e) => {
+            if (isMouseDown) {
+                addSand(e, color);
+            }
+        });
+
+        canvas.addEventListener("mouseup", () => {
+            isMouseDown = false;
+        });
+
+        canvas.addEventListener("mouseleave", () => {
+            isMouseDown = false;
+        });
+
+        function updateGrid() {
+            for (let y = gridSize - 2; y >= 0; y--) {
+                for (let x = 0; x < gridSize; x++) {
+                    if (grid[y][x] !== EMPTY && grid[y + 1][x] === EMPTY) {
+                        grid[y + 1][x] = grid[y][x];
+                        grid[y][x] = EMPTY;
+                    } else if (grid[y][x] !== EMPTY && grid[y + 1][x] !== EMPTY && grid[y + 1][x + 1] === EMPTY) {
+                        grid[y + 1][x + 1] = grid[y][x];
+                        grid[y][x] = EMPTY;
+                    } else if (grid[y][x] !== EMPTY && grid[y + 1][x] !== EMPTY && grid[y + 1][x - 1] === EMPTY) {
+                        grid[y + 1][x - 1] = grid[y][x];
+                        grid[y][x] = EMPTY;
+                    }
+
+                }
+            }
+            drawGrid(grid);
+            requestAnimationFrame(updateGrid);
+        }
+
+        drawGrid(grid);
+        updateGrid();
+    </script>
+</body>
+
+</html>
